@@ -59,7 +59,6 @@ public class TwitterMRJob extends Configured implements Tool {
 			while (values.hasNext()) {
 				sum += values.next().get();
 			}
-			log.info("Inside reducer with key="+key+", sum="+sum);
 			output.collect(key, new IntWritable(sum));
 		}
 	}
