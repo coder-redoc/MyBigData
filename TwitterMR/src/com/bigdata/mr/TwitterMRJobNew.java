@@ -62,7 +62,6 @@ public class TwitterMRJobNew {
             for(IntWritable value: values){
                 sum+=value.get();
             }
-            log.info("Inside reducer with key="+key+", sum="+sum);
             context.write(key, new IntWritable(sum));
         }
     }
