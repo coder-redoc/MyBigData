@@ -89,7 +89,7 @@ public class TwitterMRJobNew {
 		job.setJarByClass(TwitterMRJobNew.class);
 		job.setMapperClass(MapClass.class);
 		job.setReducerClass(Reduce.class);
-
+		
 		//set the outputs for the Map
 		job.setMapOutputKeyClass(Text.class);
 		job.setMapOutputValueClass(IntWritable.class);
