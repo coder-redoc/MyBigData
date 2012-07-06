@@ -6,6 +6,8 @@ import java.lang.InterruptedException;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.compress.CompressionCodec;
+import org.apache.hadoop.io.compress.GzipCodec;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
@@ -77,7 +79,18 @@ public class TwitterMRJobNew {
 	}
 
 	public static  void main(String[] args) throws Exception{
+		
+		if (args.length < 2) {
+			System.out.println("<USAGE> com.bigdata.mr.TwitterMRJobNew <INPUT_DIR> <OUTPUT_DIR> ");
+			System.exit(0);
+		}
+		
 		Configuration conf = new Configuration();
+		//Some Performance improvements
+		conf.setBoolean("mapred.compress.map.output", true);
+		conf.setClass("mapred.map.output.compression.codec",GzipCodec.class,CompressionCodec.class);
+		conf.setInt("mapred.job.reuse.jvm.num.tasks", -1);
+		
 		String[] jobArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 		Job job = new Job(conf, "Twitter MapReduce Job with new hadoop API");
 
