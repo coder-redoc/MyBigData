@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<!-- Build file for TwitterMR application -->
+
+<project name="TwitterMR" default="dist-twitterMR" basedir=".">
+
+<property name="src.base" value="src"/>
+<property name="src.test" value="src_test"/>	   
+<property name="lib" value="lib"/>	  
+<property name="build.home" value="build"/>	  
+<property name="build.jars" value="jar"/>	  
+<property name="dist.home" value="dist"/>	  
+	
+	<path id="hadoop.jars">
+		<!--Hadoop jars-->
+		<pathelement path="${lib}/hadoop-core-1.0.1.jar" />
+		<pathelement path="${lib}/commons-cli-1.2.jar" />
+		<pathelement path="${lib}/hadoop-ant-1.0.1.jar" />
+		<pathelement path="${lib}/hadoop-client-1.0.1.jar" />
+		<pathelement path="${lib}/hadoop-examples-1.0.1.jar" />
+		<pathelement path="${lib}/hadoop-minicluster-1.0.1.jar" />
+		<pathelement path="${lib}/hadoop-test-1.0.1.jar" />
+		<pathelement path="${lib}/hadoop-tools-1.0.1.jar" />
+		<pathelement path="${lib}/json.jar" />
+		<pathelement path="${lib}/log4j-1.2.15.jar" />
+	</path>
+
+<target name="clean">
+	<delete dir="build"/>
+	<delete dir="jar"/>
+	<delete dir="dist"/>		
+</target>	
+	
+<!-- DIST_JAR:	Construct twitterMR.jar distributable -->
+<target name="twitterMR-jar">
+	<mkdir dir="build/src_classes"/>
+	<mkdir dir="jar"/>
+	<javac srcdir="${src.base}"
+		fork="true" memoryMaximumSize="256m"
+		sourcepath=""
+		destdir="${build.home}/src_classes"
+		debug="${debug}" optimize="${optimize}"
+		deprecation="${deprecation}">
+	<classpath refid="hadoop.jars"/>
+	</javac>
+	<jar jarfile="${build.jars}/twitterMR.jar" basedir="${build.home}/src_classes"/>
+</target>
+	
+	
+	<!-- ############################################################################# -->
+	<!-- # twitterMR.tar                                                             # -->
+	<!-- ############################################################################# -->
+
+	<target name="dist-twitterMR" depends="twitterMR-jar"
+	        description="Creates the twitterMR distribution">
+
+	   <property name="twitterMR.tar.name" value="twitterMR.tar"/>
+	   <echo message="Creating TwitterMR Tar distribution - ${twitterMR.tar.name}..."/>
+	   <delete file="twitterMR.tar.name"/>
+
+	   <mkdir dir="${dist.home}"/>
+			
+	   <tar longfile="gnu" destfile="${dist.home}/${twitterMR.tar.name}">
+	      <!-- Save the jar files -->
+	      <tarfileset dir="${build.jars}"
+	                  mode="755"
+	                  prefix="lib">
+	         <include name="twitterMR.jar"/>
+	      </tarfileset>
+	</tar>
+	</target>
+	
+</project>
