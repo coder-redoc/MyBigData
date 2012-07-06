@@ -1,15 +1,15 @@
 package com.bigdata.mr;
 
 import java.io.IOException;
-import java.lang.InterruptedException;
+import java.util.Map;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.GzipCodec;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -27,10 +27,8 @@ import org.json.JSONException;
 
 public class TwitterMRJobNew {
 
-	private static final Logger log = Logger.getLogger(TwitterMRJob.class.getName());
+	private static final Logger log = Logger.getLogger(TwitterMRJobNew.class.getName());
 
-	/**
-	 */
 	/**
 	 * 
 	 * Mapper class reads each line from the file & extracts the http url out of the tweet. 
@@ -43,7 +41,8 @@ public class TwitterMRJobNew {
 
 		public void map(LongWritable key, Text value, Context context) throws IOException {
 			try {
-				String url = TweetParser.parseTwitterUrlData(value.toString());
+				Map<String , String> tweetMap = TweetParser.parseTwitterUrlData(value.toString());
+				String url = (tweetMap.containsKey(TweetEnums.EXPANDED_URL.toString())) ? tweetMap.get(TweetEnums.EXPANDED_URL.toString()):null; 
 				if (null != url) {
 					link.set(url);
 					context.write(link, one);
@@ -58,7 +57,7 @@ public class TwitterMRJobNew {
 				context.getCounter(TweetParserCounter.INVALID_TWEET).increment(1);
 			} catch (Exception e) {
 				context.getCounter(TweetParserCounter.FAILED).increment(1);
-				log.error("Exception caught while trying to create a map", e);
+				log.error("Exception caught while trying to extract an url from the tweet", e);
 			}
 		}
 	}
