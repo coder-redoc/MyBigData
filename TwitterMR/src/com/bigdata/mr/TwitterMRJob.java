@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * User: Satish Varma Dandu (dsvarma@gmail.com)
@@ -35,11 +36,11 @@ public class TwitterMRJob extends Configured implements Tool {
 
 		public void map(LongWritable key, Text value, OutputCollector<Text, IntWritable> output, Reporter reporter) throws IOException {
 			try {
-				String url = tweetParser.parseTwitterUrlData(value.toString());
+				Map<String , String> tweetMap = TweetParser.parseTwitterUrlData(value.toString());
+				String url = (tweetMap.containsKey(TweetEnums.EXPANDED_URL.toString())) ? tweetMap.get(TweetEnums.EXPANDED_URL.toString()):null; 
 				if (null != url) {
 					link.set(url);
 					output.collect(link, one);
-					log.info("Inside Map with url="+link);
 				}
 
 			} catch (Exception e) {
