@@ -95,7 +95,7 @@ public class TwitterMRJob extends Configured implements Tool {
 	public static void main(String[] args) throws Exception {
 
 		if (args.length < 2) {
-			System.out.println("<USAGE> com.mr.TwitterMRJob <INPUT_DIR> <OUTPUT_DIR> ");
+			System.out.println("<USAGE> com.bigdata.mr.TwitterMRJob <INPUT_DIR> <OUTPUT_DIR> ");
 			System.exit(0);
 		}
 
