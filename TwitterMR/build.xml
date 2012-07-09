@@ -1,19 +1,21 @@
 <?xml version="1.0"?>
 <!-- Build file for TwitterMR application -->
 
-<project name="TwitterMR" default="dist-twitterMR" basedir=".">
+<project name="TwitterMR" default="all" basedir=".">
 
 <property name="src.base" value="src"/>
-<property name="src.test" value="src_test"/>	   
+<property name="src_test.base" value="src_test"/>
 <property name="lib" value="lib"/>	  
 <property name="build.home" value="build"/>	  
 <property name="build.jars" value="jar"/>	  
-<property name="dist.home" value="dist"/>	  
+<property name="dist.home" value="dist"/>	
+<property name="report.dir"  value="${build.home}/junitreport"/>
 	
 	<path id="hadoop.jars">
 		<!--Hadoop jars-->
 		<pathelement path="${lib}/hadoop-core-1.0.1.jar" />
 		<pathelement path="${lib}/commons-cli-1.2.jar" />
+		<pathelement path="${lib}/commons-logging-1.1.jar" />
 		<pathelement path="${lib}/hadoop-ant-1.0.1.jar" />
 		<pathelement path="${lib}/hadoop-client-1.0.1.jar" />
 		<pathelement path="${lib}/hadoop-examples-1.0.1.jar" />
@@ -23,17 +25,35 @@
 		<pathelement path="${lib}/json.jar" />
 		<pathelement path="${lib}/log4j-1.2.15.jar" />
 	</path>
+	
+	 <path id="junit.jars">
+	    <pathelement location="${lib}/junit-4.10.jar" />
+	 	<pathelement location="${lib}/mrunit-0.9.0-incubating-hadoop1.jar" />
+	 	<pathelement location="${lib}/mockito-all-1.9.0.jar" />
+	  </path>
+	
+	<path id="tests_run.path">
+	    <pathelement location="${build.jars}/twitterMR-unit.jar"/>
+		<pathelement location="${build.jars}/twitterMR.jar"/>
+	</path>
 
-<target name="clean">
-	<delete dir="build"/>
-	<delete dir="jar"/>
+
+<target name="clean-all">
+	<delete dir="${build.home}"/>
+	<delete dir="${build.jars}"/>
 	<delete dir="dist"/>		
 </target>	
 	
+<target name="makedir">
+	<mkdir dir="${build.home}"/>
+	<mkdir dir="${build.home}/src_classes"/>
+	<mkdir dir="${build.jars}"/>
+	<mkdir dir="dist"/>	
+</target>	
+
+	
 <!-- DIST_JAR:	Construct twitterMR.jar distributable -->
-<target name="twitterMR-jar">
-	<mkdir dir="build/src_classes"/>
-	<mkdir dir="jar"/>
+<target name="twitterMR-jar" depends="makedir">
 	<javac srcdir="${src.base}"
 		fork="true" memoryMaximumSize="256m"
 		sourcepath=""
@@ -46,11 +66,59 @@
 </target>
 	
 	
+	
+	<target name="compile-tests"
+	           depends="twitterMR-jar, makedir">
+	      <echo message="Compiling JUnit Test Cases. "/>
+	      <mkdir dir="${build.home}/mr_testcases"/>
+	      <copy todir="${build.home}/mr_testcases">
+	       		<fileset dir="${src_test.base}" includes="*"/>
+	    	</copy>
+
+	      <javac srcdir="${src_test.base}"
+	             destdir="${build.home}/mr_testcases"
+	             debug="${debug}" optimize="${optimize}"
+	             deprecation="${deprecation}">
+	      	<classpath refid="junit.jars"/>
+	      	<classpath refid="hadoop.jars"/>
+	      	<classpath>
+	      		<pathelement location="${build.jars}/twitterMR.jar" />
+	      	</classpath>
+	      </javac>
+	      <jar jarfile="${build.jars}/twitterMR-unit.jar"
+	           basedir="${build.home}/mr_testcases" includes="**"/>
+	   </target>
+	  
+	<target name="run-tests" depends="compile-tests">
+		  <mkdir dir="${report.dir}"/>
+	      <echo message="Running TestCases. Report will be generated at ${report.dir}"/>
+	      <junit haltonfailure="no" fork="yes" printsummary="withOutAndErr">
+	         <classpath refid="junit.jars"/>
+	         <classpath refid="tests_run.path"/>
+	         <classpath refid="hadoop.jars"/>
+	         <batchtest fork="yes" todir="${report.dir}">
+	            <formatter type="xml"/>
+	            <fileset dir="${src_test.base}" includes="**/*Test*">
+	             </fileset>
+	         </batchtest>
+	      </junit>
+	   </target>
+	
+	<target name="run-tests-withReports" depends="run-tests">
+	      <junitreport todir="${report.dir}">
+	         <fileset dir="${report.dir}">
+	            <include name="TEST-*.xml"/>
+	         </fileset>
+	         <report format="frames"
+	                 todir="${report.dir}"/>
+	      </junitreport>
+	   </target>
+
 	<!-- ############################################################################# -->
 	<!-- # twitterMR.tar                                                             # -->
 	<!-- ############################################################################# -->
 
-	<target name="dist-twitterMR" depends="twitterMR-jar"
+	<target name="dist-twitterMR" depends="twitterMR-jar, run-tests"
 	        description="Creates the twitterMR distribution">
 
 	   <property name="twitterMR.tar.name" value="twitterMR.tar"/>
@@ -69,4 +137,10 @@
 	</tar>
 	</target>
 	
+	<target name="message">
+	      <echo level="info" message="Javahome = ${java.home}"/>
+	</target>
+	<!-- UTILITY:	All-in-one dist target -->
+	<target name="all" depends="message,dist-twitterMR">
+	</target>
 </project>
