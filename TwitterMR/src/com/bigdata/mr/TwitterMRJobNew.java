@@ -34,7 +34,7 @@ public class TwitterMRJobNew {
 	 * Mapper class reads each line from the file & extracts the http url out of the tweet. 
 	 *
 	 */
-	public static class MapClass extends Mapper<LongWritable, Text, Text, IntWritable> {
+	public static class TweetMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
 		private final static IntWritable one = new IntWritable(1);
 		private Text link = new Text();
 		static enum TweetParserCounter {EXTRACTED_URLS, INVALID_TWEET, FAILED, EMPTY_URL};
@@ -67,7 +67,7 @@ public class TwitterMRJobNew {
 	 * Reducer class outputs the counts for each http url
 	 *	
 	 */
-	public static class Reduce extends Reducer<Text, IntWritable, Text, IntWritable> {
+	public static class TweetReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
 		public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
 			int sum = 0;
 			for(IntWritable value: values){
@@ -99,9 +99,9 @@ public class TwitterMRJobNew {
 
 		//Set Mapper & Reducer classes
 		job.setJarByClass(TwitterMRJobNew.class);
-		job.setMapperClass(MapClass.class);
-		job.setReducerClass(Reduce.class);
-		job.setCombinerClass(Reduce.class);
+		job.setMapperClass(TweetMapper.class);
+		job.setReducerClass(TweetReducer.class);
+		job.setCombinerClass(TweetReducer.class);
 		
 		//set the outputs for the Map
 		job.setMapOutputKeyClass(Text.class);
